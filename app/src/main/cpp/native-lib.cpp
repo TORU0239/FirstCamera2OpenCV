@@ -8,3 +8,10 @@ Java_my_com_toru_firstcamera2opencv_MainActivity_stringFromJNI(
     std::string hello = "Hello from C++";
     return env->NewStringUTF(hello.c_str());
 }
+
+extern "C"
+JNIEXPORT jstring JNICALL
+Java_my_com_toru_firstcamera2opencv_ui_MainActivity_stringFromJNI(JNIEnv *env, jobject instance) {
+    std::string hello = "Hello from C++";
+    return env->NewStringUTF(hello.c_str());
+}
