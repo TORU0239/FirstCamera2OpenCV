@@ -14,6 +14,8 @@ import android.hardware.camera2.CaptureRequest;
 import android.hardware.camera2.params.StreamConfigurationMap;
 import android.media.Image;
 import android.media.ImageReader;
+import android.os.Handler;
+import android.os.HandlerThread;
 import android.support.annotation.NonNull;
 import android.support.v4.app.ActivityCompat;
 import android.support.v7.app.AppCompatActivity;
@@ -88,13 +90,17 @@ public class NewCameraActivity extends AppCompatActivity {
         SurfaceTexture texture = textureview.getSurfaceTexture();
         texture.setDefaultBufferSize(size.getWidth(), size.getHeight());
         Surface surface = new Surface(texture);
-//        Surface imageSurface = imageReader.getSurface();
+        Surface imageSurface = imageReader.getSurface();
+
+        HandlerThread thread = new HandlerThread("CameraPreview");
+        thread.start();
+        Handler backgroundHandler = new Handler(thread.getLooper());
 
         try {
-            captureReqBuilder = cameraDevice.createCaptureRequest(CameraDevice.TEMPLATE_PREVIEW);
+            captureReqBuilder = cameraDevice.createCaptureRequest(CameraDevice.TEMPLATE_STILL_CAPTURE);
             captureReqBuilder.addTarget(surface);
 //            captureReqBuilder.addTarget(imageSurface);
-            cameraDevice.createCaptureSession(Arrays.asList(surface), captureSessionCallback, null);
+            cameraDevice.createCaptureSession(Arrays.asList(surface/*, imageSurface*/), captureSessionCallback, backgroundHandler);
         }
         catch (Throwable t) {
             t.printStackTrace();
@@ -152,11 +158,15 @@ public class NewCameraActivity extends AppCompatActivity {
                     continue;
                 }
 
+                HandlerThread thread = new HandlerThread("CameraPreview2");
+                thread.start();
+                Handler backgroundHandler = new Handler(thread.getLooper());
+
                 // For still image captures, we use the largest available size.
                 Size largest = Collections.max(Arrays.asList(map.getOutputSizes(ImageFormat.JPEG)),
                         new CompareSizesByArea());
                 imageReader = ImageReader.newInstance(largest.getWidth() / 16, largest.getHeight() / 16, ImageFormat.JPEG, /*maxImages*/2);
-                imageReader.setOnImageAvailableListener(imageAvailableListener, null);
+                imageReader.setOnImageAvailableListener(imageAvailableListener, backgroundHandler);
                 return;
             }
         } catch (CameraAccessException | NullPointerException e) {
@@ -165,7 +175,7 @@ public class NewCameraActivity extends AppCompatActivity {
     }
 
     private void initCamara(int width, int height) {
-//        setupCamera();
+        setupCamera();
         CameraManager cameraManager = (CameraManager) getSystemService(Context.CAMERA_SERVICE);
         if (cameraManager == null) return;
         try {
