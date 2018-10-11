@@ -10,4 +10,14 @@
         android:layout_width="match_parent"
         android:layout_height="match_parent"/>
 
+    <ImageView
+        android:id="@+id/img_test"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_marginBottom="16dp"
+        android:layout_marginEnd="16dp"
+        android:layout_gravity="end|bottom"
+        android:padding="16dp"
+        android:src="@drawable/ic_outline_camera_alt_24px"/>
+
 </FrameLayout>

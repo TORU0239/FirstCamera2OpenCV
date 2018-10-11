@@ -1,6 +1,7 @@
 package my.com.toru.firstcamera2opencv.ui;
 
 import android.annotation.TargetApi;
+import android.content.Intent;
 import android.content.pm.PackageManager;
 import android.os.Build;
 import android.os.Bundle;
@@ -32,17 +33,8 @@ public class MainActivity extends AppCompatActivity implements View.OnTouchListe
 
     private String[] PERMISSIONS  = {"android.permission.CAMERA"};
 
-
     private CameraBridgeViewBase mOpenCvCameraView;
-    private Mat matInput;
-    private Mat matResult;
-
     private Mat mRgba;
-    private Mat mRgbaF;
-    private Mat mRgbaT;
-
-//    public native void ConvertRGBtoGray(long matAddrInput, long matAddrResult);
-
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -51,6 +43,10 @@ public class MainActivity extends AppCompatActivity implements View.OnTouchListe
         requestWindowFeature(Window.FEATURE_NO_TITLE);
         getWindow().addFlags(WindowManager.LayoutParams.FLAG_KEEP_SCREEN_ON);
         setContentView(R.layout.activity_main);
+
+        findViewById(R.id.img_test).setOnClickListener(v -> {
+           startActivity(new Intent(MainActivity.this, NewCameraActivity.class));
+        });
 
         mOpenCvCameraView = findViewById(R.id.activity_surface_view);
         mOpenCvCameraView.setVisibility(SurfaceView.VISIBLE);
@@ -160,8 +156,6 @@ public class MainActivity extends AppCompatActivity implements View.OnTouchListe
     @Override
     public void onCameraViewStarted(int width, int height) {
         mRgba = new Mat(height, width, CvType.CV_8UC4);
-        mRgbaF = new Mat(height, width, CvType.CV_8UC4);
-        mRgbaT = new Mat(width, width, CvType.CV_8UC4);
     }
 
     @Override
@@ -172,10 +166,7 @@ public class MainActivity extends AppCompatActivity implements View.OnTouchListe
     @Override
     public Mat onCameraFrame(CameraBridgeViewBase.CvCameraViewFrame inputFrame) {
         mRgba = inputFrame.rgba();
-//        Core.transpose(mRgba, mRgbaT);
-//        Imgproc.resize(mRgbaT, mRgbaF, mRgbaF.size(), 0,0, 0);
-//        Core.flip(mRgbaF, mRgba, 1 );
-        return mRgba; // This function must return
+        return mRgba;
     }
 
     @Override
