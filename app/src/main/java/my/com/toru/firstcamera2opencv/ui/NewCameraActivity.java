@@ -3,6 +3,7 @@ package my.com.toru.firstcamera2opencv.ui;
 import android.Manifest;
 import android.content.Context;
 import android.content.pm.PackageManager;
+import android.graphics.ImageFormat;
 import android.graphics.SurfaceTexture;
 import android.hardware.camera2.CameraAccessException;
 import android.hardware.camera2.CameraCaptureSession;
@@ -11,6 +12,7 @@ import android.hardware.camera2.CameraDevice;
 import android.hardware.camera2.CameraManager;
 import android.hardware.camera2.CaptureRequest;
 import android.hardware.camera2.params.StreamConfigurationMap;
+import android.media.Image;
 import android.media.ImageReader;
 import android.support.annotation.NonNull;
 import android.support.v4.app.ActivityCompat;
@@ -21,7 +23,10 @@ import android.util.Size;
 import android.view.Surface;
 import android.view.TextureView;
 
+import java.nio.ByteBuffer;
+import java.util.Arrays;
 import java.util.Collections;
+import java.util.Comparator;
 
 import my.com.toru.firstcamera2opencv.R;
 
@@ -50,11 +55,14 @@ public class NewCameraActivity extends AppCompatActivity {
         }
     };
 
+    private CameraCaptureSession captureSession;
+
     private CameraCaptureSession.StateCallback captureSessionCallback = new CameraCaptureSession.StateCallback() {
         @Override
         public void onConfigured(@NonNull CameraCaptureSession session) {
+            captureSession = session;
             try {
-                session.setRepeatingRequest(captureReqBuilder.build(), null, null);
+                captureSession.setRepeatingRequest(captureReqBuilder.build(), null, null);
             }
             catch (CameraAccessException e) {
                 e.printStackTrace();
@@ -65,15 +73,28 @@ public class NewCameraActivity extends AppCompatActivity {
         public void onConfigureFailed(@NonNull CameraCaptureSession session) {}
     };
 
+    private ImageReader imageReader;
+
+    private ImageReader.OnImageAvailableListener imageAvailableListener = reader -> {
+        Log.w(TAG, "reader");
+//        Image image =  imageReader.acquireNextImage();
+//        ByteBuffer buffer = image.getPlanes()[0].getBuffer();
+//        byte[] bytes = new byte[buffer.remaining()];
+//        buffer.get(bytes);
+//        image.close();
+    };
+
     private void createCameraPreviewSession() {
         SurfaceTexture texture = textureview.getSurfaceTexture();
         texture.setDefaultBufferSize(size.getWidth(), size.getHeight());
         Surface surface = new Surface(texture);
+//        Surface imageSurface = imageReader.getSurface();
 
         try {
-            captureReqBuilder = cameraDevice.createCaptureRequest(CameraDevice.TEMPLATE_STILL_CAPTURE);
+            captureReqBuilder = cameraDevice.createCaptureRequest(CameraDevice.TEMPLATE_PREVIEW);
             captureReqBuilder.addTarget(surface);
-            cameraDevice.createCaptureSession(Collections.singletonList(surface), captureSessionCallback, null);
+//            captureReqBuilder.addTarget(imageSurface);
+            cameraDevice.createCaptureSession(Arrays.asList(surface), captureSessionCallback, null);
         }
         catch (Throwable t) {
             t.printStackTrace();
@@ -102,17 +123,57 @@ public class NewCameraActivity extends AppCompatActivity {
             cameraDevice = null;
         }
     };
-
-    private ImageReader imageReader;
     //endregion
 
+    /**
+     * Compares two {@code Size}s based on their areas.
+     */
+    static class CompareSizesByArea implements Comparator<Size> {
+
+        @Override
+        public int compare(Size lhs, Size rhs) {
+            // We cast here to ensure the multiplications won't overflow
+            return Long.signum((long) lhs.getWidth() * lhs.getHeight() -
+                    (long) rhs.getWidth() * rhs.getHeight());
+        }
+
+    }
+
+
+    private void setupCamera(){
+        CameraManager manager = (CameraManager) getSystemService(Context.CAMERA_SERVICE);
+        try {
+            for (String cameraId : manager.getCameraIdList()) {
+                CameraCharacteristics characteristics = manager.getCameraCharacteristics(cameraId);
+
+                StreamConfigurationMap map = characteristics.get(
+                        CameraCharacteristics.SCALER_STREAM_CONFIGURATION_MAP);
+                if (map == null) {
+                    continue;
+                }
+
+                // For still image captures, we use the largest available size.
+                Size largest = Collections.max(Arrays.asList(map.getOutputSizes(ImageFormat.JPEG)),
+                        new CompareSizesByArea());
+                imageReader = ImageReader.newInstance(largest.getWidth() / 16, largest.getHeight() / 16, ImageFormat.JPEG, /*maxImages*/2);
+                imageReader.setOnImageAvailableListener(imageAvailableListener, null);
+                return;
+            }
+        } catch (CameraAccessException | NullPointerException e) {
+            e.printStackTrace();
+        }
+    }
+
     private void initCamara(int width, int height) {
+//        setupCamera();
         CameraManager cameraManager = (CameraManager) getSystemService(Context.CAMERA_SERVICE);
         if (cameraManager == null) return;
-
         try {
             String cameraId = cameraManager.getCameraIdList()[0];
             CameraCharacteristics characteristics = cameraManager.getCameraCharacteristics(cameraId);
+
+            Size[] jpegSizes = characteristics.get(CameraCharacteristics.SCALER_STREAM_CONFIGURATION_MAP)
+                                                .getOutputSizes(ImageFormat.JPEG);
             StreamConfigurationMap configurationMap = characteristics.get(CameraCharacteristics.SCALER_STREAM_CONFIGURATION_MAP);
             if (configurationMap != null) {
                 size = configurationMap.getOutputSizes(SurfaceTexture.class)[0];
