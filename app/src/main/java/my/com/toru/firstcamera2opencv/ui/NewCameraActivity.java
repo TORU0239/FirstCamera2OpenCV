@@ -11,10 +11,12 @@ import android.hardware.camera2.CameraDevice;
 import android.hardware.camera2.CameraManager;
 import android.hardware.camera2.CaptureRequest;
 import android.hardware.camera2.params.StreamConfigurationMap;
+import android.media.ImageReader;
 import android.support.annotation.NonNull;
 import android.support.v4.app.ActivityCompat;
 import android.support.v7.app.AppCompatActivity;
 import android.os.Bundle;
+import android.util.Log;
 import android.util.Size;
 import android.view.Surface;
 import android.view.TextureView;
@@ -24,7 +26,7 @@ import java.util.Collections;
 import my.com.toru.firstcamera2opencv.R;
 
 public class NewCameraActivity extends AppCompatActivity {
-
+    private static final String TAG = NewCameraActivity.class.getSimpleName();
 
     //region preview related
     private TextureView textureview;
@@ -36,8 +38,7 @@ public class NewCameraActivity extends AppCompatActivity {
         }
 
         @Override
-        public void onSurfaceTextureSizeChanged(SurfaceTexture surface, int width, int height) {
-        }
+        public void onSurfaceTextureSizeChanged(SurfaceTexture surface, int width, int height) {}
 
         @Override
         public boolean onSurfaceTextureDestroyed(SurfaceTexture surface) {
@@ -54,14 +55,14 @@ public class NewCameraActivity extends AppCompatActivity {
         public void onConfigured(@NonNull CameraCaptureSession session) {
             try {
                 session.setRepeatingRequest(captureReqBuilder.build(), null, null);
-            } catch (CameraAccessException e) {
+            }
+            catch (CameraAccessException e) {
                 e.printStackTrace();
             }
         }
 
         @Override
-        public void onConfigureFailed(@NonNull CameraCaptureSession session) {
-        }
+        public void onConfigureFailed(@NonNull CameraCaptureSession session) {}
     };
 
     private void createCameraPreviewSession() {
@@ -70,16 +71,14 @@ public class NewCameraActivity extends AppCompatActivity {
         Surface surface = new Surface(texture);
 
         try {
-            captureReqBuilder = cameraDevice.createCaptureRequest(CameraDevice.TEMPLATE_PREVIEW);
+            captureReqBuilder = cameraDevice.createCaptureRequest(CameraDevice.TEMPLATE_STILL_CAPTURE);
             captureReqBuilder.addTarget(surface);
-
             cameraDevice.createCaptureSession(Collections.singletonList(surface), captureSessionCallback, null);
         }
         catch (Throwable t) {
             t.printStackTrace();
         }
     }
-
 
     //endregion
 
@@ -103,6 +102,8 @@ public class NewCameraActivity extends AppCompatActivity {
             cameraDevice = null;
         }
     };
+
+    private ImageReader imageReader;
     //endregion
 
     private void initCamara(int width, int height) {
@@ -129,7 +130,6 @@ public class NewCameraActivity extends AppCompatActivity {
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_new_camera);
-
         textureview = findViewById(R.id.textureview);
     }
 
@@ -141,7 +141,8 @@ public class NewCameraActivity extends AppCompatActivity {
             int width = textureview.getWidth();
             int height = textureview.getHeight();
             initCamara(width, height);
-        } else {
+        }
+        else {
             // call from the listener callback
             textureview.setSurfaceTextureListener(surfaceTextureListener);
         }
