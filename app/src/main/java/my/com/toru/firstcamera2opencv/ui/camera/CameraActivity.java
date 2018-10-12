@@ -1,23 +1,37 @@
 package my.com.toru.firstcamera2opencv.ui.camera;
 
+import android.Manifest;
+import android.content.Context;
+import android.content.pm.PackageManager;
 import android.graphics.SurfaceTexture;
+import android.hardware.camera2.CameraAccessException;
 import android.hardware.camera2.CameraCaptureSession;
+import android.hardware.camera2.CameraCharacteristics;
 import android.hardware.camera2.CameraDevice;
+import android.hardware.camera2.CameraManager;
+import android.hardware.camera2.CameraMetadata;
 import android.hardware.camera2.CaptureFailure;
 import android.hardware.camera2.CaptureRequest;
 import android.hardware.camera2.CaptureResult;
 import android.hardware.camera2.TotalCaptureResult;
+import android.hardware.camera2.params.StreamConfigurationMap;
 import android.media.ImageReader;
 import android.os.Handler;
 import android.os.HandlerThread;
 import android.support.annotation.NonNull;
+import android.support.v4.app.ActivityCompat;
 import android.support.v7.app.AppCompatActivity;
 import android.os.Bundle;
 import android.util.Size;
 import android.view.Surface;
 import android.view.TextureView;
 
+import java.security.Permission;
+import java.util.Arrays;
+import java.util.Collections;
+
 import my.com.toru.firstcamera2opencv.R;
+import my.com.toru.firstcamera2opencv.util.Util;
 
 public class CameraActivity extends AppCompatActivity {
     private static final String TAG = CameraActivity.class.getSimpleName();
@@ -44,6 +58,7 @@ public class CameraActivity extends AppCompatActivity {
     // endregion
 
     //region CameraDevice
+    private CameraManager cameraManager;
     private CameraDevice cameraDevice;
     private CameraDevice.StateCallback cameraStateCallback = new CameraDevice.StateCallback() {
         @Override
@@ -53,10 +68,15 @@ public class CameraActivity extends AppCompatActivity {
         }
 
         @Override
-        public void onDisconnected(@NonNull CameraDevice camera) {}
+        public void onDisconnected(@NonNull CameraDevice camera) {
+            cameraDevice.close();
+        }
 
         @Override
-        public void onError(@NonNull CameraDevice camera, int error) {}
+        public void onError(@NonNull CameraDevice camera, int error) {
+            cameraDevice.close();
+            cameraDevice = null;
+        }
     };
     //endregion
 
@@ -86,7 +106,11 @@ public class CameraActivity extends AppCompatActivity {
 
     private CameraCaptureSession.StateCallback captureStateCallback = new CameraCaptureSession.StateCallback() {
         @Override
-        public void onConfigured(@NonNull CameraCaptureSession session) {}
+        public void onConfigured(@NonNull CameraCaptureSession session) {
+            if(cameraDevice == null) return;
+            captureSession = session;
+            updateCameraPreview();
+        }
 
         @Override
         public void onConfigureFailed(@NonNull CameraCaptureSession session) {}
@@ -97,11 +121,12 @@ public class CameraActivity extends AppCompatActivity {
     //endregion
 
     //region Image and Size
-    private Size size;
+    private Size imageSize;
     private ImageReader imageReader;
     private ImageReader.OnImageAvailableListener imageAvailableListener = new ImageReader.OnImageAvailableListener() {
         @Override
-        public void onImageAvailable(ImageReader reader) {}
+        public void onImageAvailable(ImageReader reader) {
+        }
     };
     //endregion
 
@@ -124,8 +149,7 @@ public class CameraActivity extends AppCompatActivity {
         initializeBackgroundThread();
         if (textureView.isAvailable()) {
             openCamera();
-        }
-        else {
+        } else {
             textureView.setSurfaceTextureListener(surfaceTextureListener);
         }
     }
@@ -142,13 +166,29 @@ public class CameraActivity extends AppCompatActivity {
     }
 
     //region Camera Related Work
-    private void initCamera(){
+    private void initCamera() {
         textureView = findViewById(R.id.camera_texture);
         textureView.setSurfaceTextureListener(surfaceTextureListener);
     }
 
-    private void openCamera(){
-        //TODO: initializing camera, and configuring camera status callback.
+    private void openCamera() {
+        if (cameraManager == null) {
+            cameraManager = (CameraManager) getSystemService(Context.CAMERA_SERVICE);
+        }
+
+        try {
+            String cameraId = cameraManager.getCameraIdList()[0];
+            CameraCharacteristics characteristics = cameraManager.getCameraCharacteristics(cameraId);
+            StreamConfigurationMap configurationMap = characteristics.get(CameraCharacteristics.SCALER_STREAM_CONFIGURATION_MAP);
+            imageSize = configurationMap.getOutputSizes(SurfaceTexture.class)[0];
+
+            if (ActivityCompat.checkSelfPermission(this, Manifest.permission.CAMERA) == PackageManager.PERMISSION_GRANTED) {
+                cameraManager.openCamera(cameraId, cameraStateCallback, null);
+            }
+        }
+        catch (CameraAccessException e) {
+            e.printStackTrace();
+        }
     }
 
     private void closeCamera(){
@@ -161,10 +201,28 @@ public class CameraActivity extends AppCompatActivity {
 
     //region CameraPreview
     private void createCameraPreview(){
+        SurfaceTexture surfaceTexture = textureView.getSurfaceTexture();
+        surfaceTexture.setDefaultBufferSize(imageSize.getWidth(), imageSize.getHeight());
 
+        Surface surface = new Surface(surfaceTexture);
+        try {
+            captureRequestBuilder = cameraDevice.createCaptureRequest(CameraDevice.TEMPLATE_PREVIEW);
+            captureRequestBuilder.addTarget(surface);
+            cameraDevice.createCaptureSession(Collections.singletonList(surface), captureStateCallback, null);
+        }
+        catch (CameraAccessException e) {
+            e.printStackTrace();
+        }
     }
 
     private void updateCameraPreview(){
+        if(cameraDevice == null) return;
+        captureRequestBuilder.set(CaptureRequest.CONTROL_MODE, CameraMetadata.CONTROL_MODE_AUTO);
+        try {
+            captureSession.setRepeatingRequest(captureRequestBuilder.build(), null, backgroundHander);
+        } catch (CameraAccessException e) {
+            e.printStackTrace();
+        }
 
     }
     //endregion
