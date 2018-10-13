@@ -149,7 +149,8 @@ public class CameraActivity extends AppCompatActivity {
         initializeBackgroundThread();
         if (textureView.isAvailable()) {
             openCamera();
-        } else {
+        }
+        else {
             textureView.setSurfaceTextureListener(surfaceTextureListener);
         }
     }

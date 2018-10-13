@@ -10,9 +10,7 @@ import android.support.v4.content.ContextCompat;
 import android.support.v7.app.AlertDialog;
 import android.support.v7.app.AppCompatActivity;
 import android.util.Log;
-import android.view.MotionEvent;
 import android.view.SurfaceView;
-import android.view.View;
 import android.view.Window;
 import android.view.WindowManager;
 
@@ -20,21 +18,22 @@ import org.opencv.android.BaseLoaderCallback;
 import org.opencv.android.CameraBridgeViewBase;
 import org.opencv.android.LoaderCallbackInterface;
 import org.opencv.android.OpenCVLoader;
-import org.opencv.core.Core;
 import org.opencv.core.CvType;
 import org.opencv.core.Mat;
+import org.opencv.core.Size;
 import org.opencv.imgproc.Imgproc;
 
 import my.com.toru.firstcamera2opencv.R;
 
-public class MainActivity extends AppCompatActivity implements View.OnTouchListener, CameraBridgeViewBase.CvCameraViewListener2 {
+public class MainActivity extends AppCompatActivity implements CameraBridgeViewBase.CvCameraViewListener2 {
     private static final String TAG = MainActivity.class.getSimpleName();
     private static final int PERMISSIONS_REQUEST_CODE = 1000;
 
     private String[] PERMISSIONS  = {"android.permission.CAMERA"};
 
     private CameraBridgeViewBase mOpenCvCameraView;
-    private Mat mRgba;
+    private Mat source;
+    private Mat result;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -52,6 +51,7 @@ public class MainActivity extends AppCompatActivity implements View.OnTouchListe
         mOpenCvCameraView.setVisibility(SurfaceView.VISIBLE);
         mOpenCvCameraView.setCvCameraViewListener(this);
         mOpenCvCameraView.setCameraIndex(0); // front-camera(1),  back-camera(0)
+        mLoaderCallback.onManagerConnected(LoaderCallbackInterface.SUCCESS);
 
         if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.M) {
             if (!hasPermissions(PERMISSIONS)) {
@@ -63,12 +63,6 @@ public class MainActivity extends AppCompatActivity implements View.OnTouchListe
         }
     }
 
-    @Override
-    public void onPause() {
-        super.onPause();
-        if (mOpenCvCameraView != null)
-            mOpenCvCameraView.disableView();
-    }
 
     @Override
     public void onResume() {
@@ -81,6 +75,13 @@ public class MainActivity extends AppCompatActivity implements View.OnTouchListe
             Log.d(TAG, "onResum :: OpenCV library found inside package. Using it!");
             mLoaderCallback.onManagerConnected(LoaderCallbackInterface.SUCCESS);
         }
+    }
+
+    @Override
+    public void onPause() {
+        super.onPause();
+        if (mOpenCvCameraView != null)
+            mOpenCvCameraView.disableView();
     }
 
     public void onDestroy() {
@@ -150,28 +151,30 @@ public class MainActivity extends AppCompatActivity implements View.OnTouchListe
     //endregion
 
     static {
+        System.loadLibrary("native-lib");
         System.loadLibrary("opencv_java3");
     }
 
+    public native void convertRGBtoGray(long matAddrInput, long matAddrResult);
+
     @Override
     public void onCameraViewStarted(int width, int height) {
-        mRgba = new Mat(height, width, CvType.CV_8UC4);
+//        source = new Mat(height, width, CvType.CV_8UC4);
     }
 
     @Override
     public void onCameraViewStopped() {
-        mRgba.release();
+        source.release();
     }
 
     @Override
     public Mat onCameraFrame(CameraBridgeViewBase.CvCameraViewFrame inputFrame) {
-        mRgba = inputFrame.rgba();
-        return mRgba;
-    }
-
-    @Override
-    public boolean onTouch(View v, MotionEvent event) {
-        return false;
+        source = inputFrame.rgba();
+        if(result == null ){
+            result = new Mat(source.rows(), source.cols(), source.type());
+        }
+        convertRGBtoGray(source.getNativeObjAddr(), result.getNativeObjAddr());
+        return result;
     }
     //endregion
 }
