@@ -18,8 +18,10 @@ import org.opencv.android.BaseLoaderCallback;
 import org.opencv.android.CameraBridgeViewBase;
 import org.opencv.android.LoaderCallbackInterface;
 import org.opencv.android.OpenCVLoader;
+import org.opencv.core.Core;
 import org.opencv.core.CvType;
 import org.opencv.core.Mat;
+import org.opencv.core.Scalar;
 import org.opencv.core.Size;
 import org.opencv.imgproc.Imgproc;
 
@@ -51,6 +53,7 @@ public class MainActivity extends AppCompatActivity implements CameraBridgeViewB
         mOpenCvCameraView.setVisibility(SurfaceView.VISIBLE);
         mOpenCvCameraView.setCvCameraViewListener(this);
         mOpenCvCameraView.setCameraIndex(0); // front-camera(1),  back-camera(0)
+
         mLoaderCallback.onManagerConnected(LoaderCallbackInterface.SUCCESS);
 
         if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.M) {
@@ -79,9 +82,10 @@ public class MainActivity extends AppCompatActivity implements CameraBridgeViewB
 
     @Override
     public void onPause() {
-        super.onPause();
-        if (mOpenCvCameraView != null)
+        if (mOpenCvCameraView != null){
             mOpenCvCameraView.disableView();
+        }
+        super.onPause();
     }
 
     public void onDestroy() {
@@ -106,8 +110,6 @@ public class MainActivity extends AppCompatActivity implements CameraBridgeViewB
             }
         }
     };
-
-
 
     //region Camera Permission
     private boolean hasPermissions(String[] permissions) {
@@ -155,16 +157,18 @@ public class MainActivity extends AppCompatActivity implements CameraBridgeViewB
         System.loadLibrary("opencv_java3");
     }
 
-    public native void convertRGBtoGray(long matAddrInput, long matAddrResult);
-
     @Override
-    public void onCameraViewStarted(int width, int height) {
-//        source = new Mat(height, width, CvType.CV_8UC4);
-    }
+    public void onCameraViewStarted(int width, int height) {}
 
     @Override
     public void onCameraViewStopped() {
-        source.release();
+        if(source != null){
+            source.release();
+        }
+
+        if(result != null){
+            result.release();
+        }
     }
 
     @Override
@@ -173,8 +177,21 @@ public class MainActivity extends AppCompatActivity implements CameraBridgeViewB
         if(result == null ){
             result = new Mat(source.rows(), source.cols(), source.type());
         }
-        convertRGBtoGray(source.getNativeObjAddr(), result.getNativeObjAddr());
+
+        detectThreshold(source.getNativeObjAddr(),
+                        result.getNativeObjAddr(),
+                        120,
+                        255,
+                        Imgproc.THRESH_BINARY);
         return result;
     }
     //endregion
+
+    public native void convertRGBtoGray(long matAddrInput, long matAddrResult);
+
+    public native void detectThreshold(long matAddrInput,
+                                       long matAddrResult,
+                                       int Threshold,
+                                       int ThresholdMax,
+                                       int type);
 }

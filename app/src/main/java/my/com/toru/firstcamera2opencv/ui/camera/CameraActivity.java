@@ -16,22 +16,22 @@ import android.hardware.camera2.CaptureResult;
 import android.hardware.camera2.TotalCaptureResult;
 import android.hardware.camera2.params.StreamConfigurationMap;
 import android.media.ImageReader;
+import android.os.Bundle;
 import android.os.Handler;
 import android.os.HandlerThread;
 import android.support.annotation.NonNull;
 import android.support.v4.app.ActivityCompat;
 import android.support.v7.app.AppCompatActivity;
-import android.os.Bundle;
+import android.util.Log;
 import android.util.Size;
 import android.view.Surface;
 import android.view.TextureView;
 
-import java.security.Permission;
 import java.util.Arrays;
-import java.util.Collections;
 
 import my.com.toru.firstcamera2opencv.R;
-import my.com.toru.firstcamera2opencv.util.Util;
+
+import static android.graphics.ImageFormat.YUV_420_888;
 
 public class CameraActivity extends AppCompatActivity {
     private static final String TAG = CameraActivity.class.getSimpleName();
@@ -126,6 +126,9 @@ public class CameraActivity extends AppCompatActivity {
     private ImageReader.OnImageAvailableListener imageAvailableListener = new ImageReader.OnImageAvailableListener() {
         @Override
         public void onImageAvailable(ImageReader reader) {
+            backgroundHander.post(() -> {
+                Log.w(TAG, "test!!");
+            });
         }
     };
     //endregion
@@ -204,12 +207,17 @@ public class CameraActivity extends AppCompatActivity {
     private void createCameraPreview(){
         SurfaceTexture surfaceTexture = textureView.getSurfaceTexture();
         surfaceTexture.setDefaultBufferSize(imageSize.getWidth(), imageSize.getHeight());
-
         Surface surface = new Surface(surfaceTexture);
+
         try {
             captureRequestBuilder = cameraDevice.createCaptureRequest(CameraDevice.TEMPLATE_PREVIEW);
             captureRequestBuilder.addTarget(surface);
-            cameraDevice.createCaptureSession(Collections.singletonList(surface), captureStateCallback, null);
+
+            imageReader = ImageReader.newInstance(imageSize.getWidth(), imageSize.getHeight(), YUV_420_888, 1);
+            imageReader.setOnImageAvailableListener(imageAvailableListener, backgroundHander);
+
+//            cameraDevice.createCaptureSession(Arrays.asList(surface, imageReader.getSurface()), captureStateCallback, null);
+            cameraDevice.createCaptureSession(Arrays.asList(imageReader.getSurface()), captureStateCallback, null);
         }
         catch (CameraAccessException e) {
             e.printStackTrace();

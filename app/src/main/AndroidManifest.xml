@@ -45,6 +45,7 @@
             android:screenOrientation="landscape" />
         <activity android:name=".ui.NewCameraActivity" />
         <activity android:name=".ui.camera.CameraActivity"/>
+        <activity android:name=".ui.camera.Camera2Demo" />
     </application>
 
 </manifest>

@@ -5,6 +5,7 @@ import android.os.Bundle;
 import android.support.v7.app.AppCompatActivity;
 
 import my.com.toru.firstcamera2opencv.R;
+import my.com.toru.firstcamera2opencv.ui.camera.Camera2Demo;
 import my.com.toru.firstcamera2opencv.ui.camera.CameraActivity;
 
 public class RouterActivity extends AppCompatActivity {
@@ -19,7 +20,8 @@ public class RouterActivity extends AppCompatActivity {
         });
 
         findViewById(R.id.open_camera2).setOnClickListener(v -> {
-            startActivity(new Intent(RouterActivity.this, CameraActivity.class));
+//            startActivity(new Intent(RouterActivity.this, CameraActivity.class));
+            startActivity(new Intent(RouterActivity.this, Camera2Demo.class));
         });
     }
 }

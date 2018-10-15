@@ -20,3 +20,16 @@ Java_my_com_toru_firstcamera2opencv_ui_MainActivity_convertRGBtoGray(JNIEnv *env
     Mat &matResult = *(Mat *)matAddrResult;
     cvtColor(matInput, matResult, CV_RGBA2GRAY);
 }
+
+extern "C"
+JNIEXPORT void JNICALL
+Java_my_com_toru_firstcamera2opencv_ui_MainActivity_detectThreshold(JNIEnv *env, jobject instance,
+                                                                    jlong matAddrInput,
+                                                                    jlong matAddrResult,
+                                                                    jint Threshold,
+                                                                    jint ThresholdMax, jint type) {
+
+    Mat &matInput = *(Mat *)matAddrInput;
+    Mat &matResult = *(Mat *)matAddrResult;
+    threshold(matInput, matResult, Threshold, ThresholdMax, type);
+}
