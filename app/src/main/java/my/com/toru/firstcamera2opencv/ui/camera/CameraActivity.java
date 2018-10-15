@@ -15,6 +15,7 @@ import android.hardware.camera2.CaptureRequest;
 import android.hardware.camera2.CaptureResult;
 import android.hardware.camera2.TotalCaptureResult;
 import android.hardware.camera2.params.StreamConfigurationMap;
+import android.media.Image;
 import android.media.ImageReader;
 import android.os.Bundle;
 import android.os.Handler;
@@ -27,6 +28,10 @@ import android.util.Size;
 import android.view.Surface;
 import android.view.TextureView;
 
+import org.opencv.core.CvType;
+import org.opencv.core.Mat;
+
+import java.nio.ByteBuffer;
 import java.util.Arrays;
 
 import my.com.toru.firstcamera2opencv.R;
@@ -126,9 +131,16 @@ public class CameraActivity extends AppCompatActivity {
     private ImageReader.OnImageAvailableListener imageAvailableListener = new ImageReader.OnImageAvailableListener() {
         @Override
         public void onImageAvailable(ImageReader reader) {
-            backgroundHander.post(() -> {
-                Log.w(TAG, "test!!");
-            });
+            Image image = reader.acquireNextImage();
+            if (image == null) {
+                return;
+            }
+
+            Image.Plane yPlane = image.getPlanes()[0];
+            Image.Plane uPlane = image.getPlanes()[1];
+            Image.Plane vPlane = image.getPlanes()[2];
+
+            image.close();
         }
     };
     //endregion
@@ -203,21 +215,23 @@ public class CameraActivity extends AppCompatActivity {
     }
     //endregion
 
+    private Surface surface;
+
     //region CameraPreview
     private void createCameraPreview(){
         SurfaceTexture surfaceTexture = textureView.getSurfaceTexture();
         surfaceTexture.setDefaultBufferSize(imageSize.getWidth(), imageSize.getHeight());
-        Surface surface = new Surface(surfaceTexture);
+        surface  = new Surface(surfaceTexture);
 
         try {
-            captureRequestBuilder = cameraDevice.createCaptureRequest(CameraDevice.TEMPLATE_PREVIEW);
-            captureRequestBuilder.addTarget(surface);
-
             imageReader = ImageReader.newInstance(imageSize.getWidth(), imageSize.getHeight(), YUV_420_888, 1);
             imageReader.setOnImageAvailableListener(imageAvailableListener, backgroundHander);
 
-//            cameraDevice.createCaptureSession(Arrays.asList(surface, imageReader.getSurface()), captureStateCallback, null);
-            cameraDevice.createCaptureSession(Arrays.asList(imageReader.getSurface()), captureStateCallback, null);
+            captureRequestBuilder = cameraDevice.createCaptureRequest(CameraDevice.TEMPLATE_PREVIEW);
+            captureRequestBuilder.addTarget(surface);
+            captureRequestBuilder.addTarget(imageReader.getSurface());
+
+            cameraDevice.createCaptureSession(Arrays.asList(surface, imageReader.getSurface()), captureStateCallback, null);
         }
         catch (CameraAccessException e) {
             e.printStackTrace();
@@ -253,5 +267,5 @@ public class CameraActivity extends AppCompatActivity {
             e.printStackTrace();
         }
     }
-    //endregion
+    // endregion
 }

@@ -37,7 +37,7 @@ public class Camera2Demo extends Activity implements
         TextureView.SurfaceTextureListener {
 
     private CameraDevice mCamera;
-    private String mCameraID = "1";
+    private String mCameraID = "0";
 
     private TextureView mPreviewView;
     private Size mPreviewSize;
@@ -208,11 +208,15 @@ public class Camera2Demo extends Activity implements
 
         // the first added target surface is for camera PREVIEW display
         // the second added target mImageReader.getSurface() is for ImageReader Callback where we can access EACH frame
-        //mPreviewBuilder.addTarget(surface);
+
+        mPreviewBuilder.addTarget(surface);
         mPreviewBuilder.addTarget(mImageReader.getSurface());
 
         //output Surface
         List<Surface> outputSurfaces = new ArrayList<>();
+        // added
+        outputSurfaces.add(surface);
+        // end
         outputSurfaces.add(mImageReader.getSurface());
 //        camera.createCaptureSession(
 //                Arrays.asList(mImageReader.getSurface(), surface),

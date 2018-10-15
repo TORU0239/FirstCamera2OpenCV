@@ -26,6 +26,7 @@ import org.opencv.core.Size;
 import org.opencv.imgproc.Imgproc;
 
 import my.com.toru.firstcamera2opencv.R;
+import my.com.toru.firstcamera2opencv.util.JNIUtil;
 
 public class MainActivity extends AppCompatActivity implements CameraBridgeViewBase.CvCameraViewListener2 {
     private static final String TAG = MainActivity.class.getSimpleName();
@@ -152,11 +153,6 @@ public class MainActivity extends AppCompatActivity implements CameraBridgeViewB
     }
     //endregion
 
-    static {
-        System.loadLibrary("native-lib");
-        System.loadLibrary("opencv_java3");
-    }
-
     @Override
     public void onCameraViewStarted(int width, int height) {}
 
@@ -178,7 +174,7 @@ public class MainActivity extends AppCompatActivity implements CameraBridgeViewB
             result = new Mat(source.rows(), source.cols(), source.type());
         }
 
-        detectThreshold(source.getNativeObjAddr(),
+        JNIUtil.detectThreshold(source.getNativeObjAddr(),
                         result.getNativeObjAddr(),
                         120,
                         255,
@@ -186,12 +182,4 @@ public class MainActivity extends AppCompatActivity implements CameraBridgeViewB
         return result;
     }
     //endregion
-
-    public native void convertRGBtoGray(long matAddrInput, long matAddrResult);
-
-    public native void detectThreshold(long matAddrInput,
-                                       long matAddrResult,
-                                       int Threshold,
-                                       int ThresholdMax,
-                                       int type);
 }
