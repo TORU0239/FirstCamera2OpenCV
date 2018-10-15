@@ -1,4 +1,4 @@
-package my.com.toru.firstcamera2opencv.ui;
+package my.com.toru.firstcamera2opencv.ui.cv;
 
 import android.annotation.TargetApi;
 import android.content.Intent;
@@ -18,18 +18,15 @@ import org.opencv.android.BaseLoaderCallback;
 import org.opencv.android.CameraBridgeViewBase;
 import org.opencv.android.LoaderCallbackInterface;
 import org.opencv.android.OpenCVLoader;
-import org.opencv.core.Core;
-import org.opencv.core.CvType;
 import org.opencv.core.Mat;
-import org.opencv.core.Scalar;
-import org.opencv.core.Size;
 import org.opencv.imgproc.Imgproc;
 
 import my.com.toru.firstcamera2opencv.R;
+import my.com.toru.firstcamera2opencv.ui.camera.CameraActivity;
 import my.com.toru.firstcamera2opencv.util.JNIUtil;
 
-public class MainActivity extends AppCompatActivity implements CameraBridgeViewBase.CvCameraViewListener2 {
-    private static final String TAG = MainActivity.class.getSimpleName();
+public class OpenCVActivity extends AppCompatActivity implements CameraBridgeViewBase.CvCameraViewListener2 {
+    private static final String TAG = OpenCVActivity.class.getSimpleName();
     private static final int PERMISSIONS_REQUEST_CODE = 1000;
 
     private String[] PERMISSIONS  = {"android.permission.CAMERA"};
@@ -47,7 +44,7 @@ public class MainActivity extends AppCompatActivity implements CameraBridgeViewB
         setContentView(R.layout.activity_main);
 
         findViewById(R.id.img_test).setOnClickListener(v -> {
-           startActivity(new Intent(MainActivity.this, NewCameraActivity.class));
+           startActivity(new Intent(OpenCVActivity.this, CameraActivity.class));
         });
 
         mOpenCvCameraView = findViewById(R.id.activity_surface_view);
@@ -143,7 +140,7 @@ public class MainActivity extends AppCompatActivity implements CameraBridgeViewB
 
     @TargetApi(Build.VERSION_CODES.M)
     private void showDialogForPermission(String msg) {
-        AlertDialog.Builder builder = new AlertDialog.Builder( MainActivity.this);
+        AlertDialog.Builder builder = new AlertDialog.Builder( OpenCVActivity.this);
         builder.setTitle("NOTICE!!");
         builder.setMessage(msg);
         builder.setCancelable(false);

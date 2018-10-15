@@ -1,12 +1,12 @@
-package my.com.toru.firstcamera2opencv.ui;
+package my.com.toru.firstcamera2opencv.ui.route;
 
 import android.content.Intent;
 import android.os.Bundle;
 import android.support.v7.app.AppCompatActivity;
 
 import my.com.toru.firstcamera2opencv.R;
-import my.com.toru.firstcamera2opencv.ui.camera.Camera2Demo;
 import my.com.toru.firstcamera2opencv.ui.camera.CameraActivity;
+import my.com.toru.firstcamera2opencv.ui.cv.OpenCVActivity;
 
 public class RouterActivity extends AppCompatActivity {
 
@@ -16,7 +16,7 @@ public class RouterActivity extends AppCompatActivity {
         setContentView(R.layout.activity_router);
 
         findViewById(R.id.opencv).setOnClickListener(v -> {
-            startActivity(new Intent(RouterActivity.this, MainActivity.class));
+            startActivity(new Intent(RouterActivity.this, OpenCVActivity.class));
         });
 
         findViewById(R.id.open_camera2).setOnClickListener(v -> {

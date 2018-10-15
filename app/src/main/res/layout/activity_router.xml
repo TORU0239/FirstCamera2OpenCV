@@ -7,7 +7,7 @@
     android:orientation="vertical"
     android:padding="16dp"
     android:gravity="center"
-    tools:context=".ui.RouterActivity">
+    tools:context=".ui.route.RouterActivity">
 
     <Button
         android:id="@+id/opencv"

@@ -19,7 +19,7 @@ Java_my_com_toru_firstcamera2opencv_MainActivity_stringFromJNI(
 
 extern "C"
 JNIEXPORT void JNICALL
-Java_my_com_toru_firstcamera2opencv_util_JNIUtil_convertRGBtoGray(JNIEnv *env, jobject instance,
+Java_my_com_toru_firstcamera2opencv_util_JNIUtil_convertRGBtoGray(JNIEnv *env, jclass type,
                                                                   jlong matAddrInput,
                                                                   jlong matAddrResult) {
 
@@ -30,7 +30,7 @@ Java_my_com_toru_firstcamera2opencv_util_JNIUtil_convertRGBtoGray(JNIEnv *env, j
 
 extern "C"
 JNIEXPORT void JNICALL
-Java_my_com_toru_firstcamera2opencv_util_JNIUtil_detectThreshold(JNIEnv *env, jobject instance,
+Java_my_com_toru_firstcamera2opencv_util_JNIUtil_detectThreshold(JNIEnv *env, jclass clazz,
                                                                  jlong matAddrInput,
                                                                  jlong matAddrResult,
                                                                  jint Threshold, jint ThresholdMax,

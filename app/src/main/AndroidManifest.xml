@@ -32,7 +32,7 @@
         android:roundIcon="@mipmap/ic_launcher_round"
         android:supportsRtl="true"
         android:theme="@style/AppTheme">
-        <activity android:name=".ui.RouterActivity"
+        <activity android:name=".ui.route.RouterActivity"
             android:screenOrientation="portrait">
             <intent-filter>
                 <action android:name="android.intent.action.MAIN" />
@@ -41,9 +41,8 @@
             </intent-filter>
         </activity>
         <activity
-            android:name=".ui.MainActivity"
+            android:name=".ui.cv.OpenCVActivity"
             android:screenOrientation="landscape" />
-        <activity android:name=".ui.NewCameraActivity" />
         <activity android:name=".ui.camera.CameraActivity"/>
         <activity android:name=".ui.camera.Camera2Demo" />
     </application>
