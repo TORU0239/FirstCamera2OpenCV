@@ -35,6 +35,7 @@ import java.nio.ByteBuffer;
 import java.util.Arrays;
 
 import my.com.toru.firstcamera2opencv.R;
+import my.com.toru.firstcamera2opencv.util.JNIUtil;
 
 import static android.graphics.ImageFormat.YUV_420_888;
 
@@ -139,6 +140,13 @@ public class CameraActivity extends AppCompatActivity {
             Image.Plane yPlane = image.getPlanes()[0];
             Image.Plane uPlane = image.getPlanes()[1];
             Image.Plane vPlane = image.getPlanes()[2];
+
+            Log.d(TAG, "Y plane length: " + yPlane.getBuffer().remaining());
+            Log.d(TAG, "U plane length: " + uPlane.getBuffer().remaining());
+            Log.d(TAG, "V plane length: " + vPlane.getBuffer().remaining());
+
+            Mat mYuv = new Mat(image.getHeight() + image.getHeight() / 2, image.getWidth(), CvType.CV_8UC1);
+            mYuv.put(0, 0, yPlane.getBuffer().array());
 
             image.close();
         }

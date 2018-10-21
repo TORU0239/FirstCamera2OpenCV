@@ -21,7 +21,6 @@ public class RouterActivity extends AppCompatActivity {
 
         findViewById(R.id.open_camera2).setOnClickListener(v -> {
             startActivity(new Intent(RouterActivity.this, CameraActivity.class));
-//            startActivity(new Intent(RouterActivity.this, Camera2Demo.class));
         });
     }
 }

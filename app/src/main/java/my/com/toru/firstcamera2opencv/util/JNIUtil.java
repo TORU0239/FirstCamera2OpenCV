@@ -1,5 +1,9 @@
 package my.com.toru.firstcamera2opencv.util;
 
+import android.view.Surface;
+
+import java.nio.ByteBuffer;
+
 public class JNIUtil {
     static {
         System.loadLibrary("native-lib");
@@ -13,4 +17,9 @@ public class JNIUtil {
                                        int Threshold,
                                        int ThresholdMax,
                                        int type);
+
+    public static native void GrayscaleDisplay(int srcWidth, int srcHeight, int rowStride, ByteBuffer srcBuffer, Surface surface);
+
+    public static native boolean imageProcessing(int width, int height,
+                                          byte[] NV21FrameData, int [] pixels);
 }
